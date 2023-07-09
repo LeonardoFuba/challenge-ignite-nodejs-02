@@ -1,0 +1,16 @@
+# dependencies
+/node_modules
+
+# database
+/db/*.db
+
+# environment
+.env*
+!.env*.example
+
+# production
+/build
+
+# misc
+.DS_Store
+/coverage
