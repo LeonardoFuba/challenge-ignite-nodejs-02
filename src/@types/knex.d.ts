@@ -11,5 +11,15 @@ declare module 'knex/types/tables' {
       avatarUrl: string
       created_at: Date
     }
+    diets: {
+      id: string
+      name: string
+      description: string
+      dateTime: Date
+      is_in_diet: boolean
+      created_at: Date
+      updated_at: Date
+      user_id: string
+    }
   }
 }
