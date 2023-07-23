@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto'
 import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
 
 export async function usersRoutes(app: FastifyInstance) {
+  /* list user by sessionId */
   app.get(
     '/',
     {
@@ -20,6 +21,7 @@ export async function usersRoutes(app: FastifyInstance) {
     },
   )
 
+  /* create user */
   app.post('/', async (request, reply) => {
     const createUserBodySchema = z.object({
       name: z.string(),
