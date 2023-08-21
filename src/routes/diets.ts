@@ -6,7 +6,7 @@ import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
 import dayjs from 'dayjs'
 
 export async function dietsRoutes(app: FastifyInstance) {
-  /* list all user's diets */
+  /* list all user's meals */
   app.get(
     '/',
     {
@@ -14,23 +14,23 @@ export async function dietsRoutes(app: FastifyInstance) {
     },
     async (request) => {
       const { sessionId } = request.cookies
-      const diets = await knex('diets')
+      const meals = await knex('diets')
         .innerJoin('users', 'users.id', 'diets.user_id')
         .where('session_id', sessionId)
         .select('diets.*')
 
       return {
-        diets: diets.map((diet) => ({
-          id: diet.id,
-          name: diet.name,
-          dateTime: new Date(diet.dateTime),
-          isInDiet: diet.is_in_diet === 1,
+        meals: meals.map((meal) => ({
+          id: meal.id,
+          name: meal.name,
+          dateTime: new Date(meal.dateTime),
+          isInDiet: meal.is_in_diet === 1,
         })),
       }
     },
   )
 
-  /* list a diet */
+  /* list a meal */
   app.get(
     '/:id',
     {
@@ -44,22 +44,28 @@ export async function dietsRoutes(app: FastifyInstance) {
       const { id } = getTransactionParamsSchema.parse(request.params)
       const { sessionId } = request.cookies
 
-      const diet = await knex('diets')
+      const meal = await knex('diets')
         .innerJoin('users', 'users.id', 'diets.user_id')
         .where('session_id', sessionId)
         .where('diets.id', id)
         .first('diets.*')
 
       return {
-        diet: {
-          ...diet,
-          dateTime: new Date(diet.dateTime),
+        meal: {
+          id: meal.id,
+          name: meal.name,
+          description: meal.description,
+          dateTime: z.coerce.date().parse(meal.dateTime),
+          isInDiet: z.coerce.boolean().parse(meal.is_in_diet),
+          createdAt: z.coerce.date().parse(meal.created_at),
+          updatedAt: z.coerce.date().parse(meal.updated_at),
+          userId: z.coerce.string().uuid().parse(meal.user_id),
         },
       }
     },
   )
 
-  /* create a diet */
+  /* create a meal */
   app.post(
     '/',
     {
@@ -84,7 +90,7 @@ export async function dietsRoutes(app: FastifyInstance) {
         .first()
 
       if (!user) {
-        return reply.status(400).send({ error: 'user not found.' })
+        return reply.status(400).send({ error: 'User not found.' })
       }
 
       await knex('diets').insert({
@@ -100,7 +106,7 @@ export async function dietsRoutes(app: FastifyInstance) {
     },
   )
 
-  /* edit a diet */
+  /* edit a meal */
   app.put(
     '/:id',
     {
@@ -120,21 +126,14 @@ export async function dietsRoutes(app: FastifyInstance) {
       const { id } = getTransactionParamsSchema.parse(request.params)
       const { name, description, dateTime, isInDiet } =
         updateDietBodySchema.parse(request.body)
-      const sessionId = request.cookies.sessionId
 
-      const diet = await knex('diets')
+      const meal = await knex('diets')
         .innerJoin('users', 'diets.user_id', 'users.id')
         .where('diets.id', id)
         .first('diets.*', 'session_id')
 
-      if (!diet) {
-        return reply.status(400).send({ error: 'Diet not found' })
-      }
-
-      if (diet.session_id !== sessionId) {
-        return reply.status(401).send({
-          error: 'Unauthorized.',
-        })
+      if (!meal) {
+        return reply.status(400).send({ error: 'Diet not found.' })
       }
 
       const [updatedDiet] = await knex('diets')
@@ -148,11 +147,22 @@ export async function dietsRoutes(app: FastifyInstance) {
         .where({ id })
         .returning('*')
 
-      return reply.status(200).send(updatedDiet)
+      return reply.status(200).send({
+        meal: {
+          id: updatedDiet.id,
+          name: updatedDiet.name,
+          description: updatedDiet.description,
+          dateTime: z.coerce.date().parse(updatedDiet.dateTime),
+          isInDiet: z.coerce.boolean().parse(updatedDiet.is_in_diet),
+          createdAt: z.coerce.date().parse(updatedDiet.created_at),
+          updatedAt: z.coerce.date().parse(updatedDiet.updated_at),
+          userId: z.coerce.string().uuid().parse(updatedDiet.user_id),
+        },
+      })
     },
   )
 
-  /* delete a diet */
+  /* delete a meal */
   app.delete(
     '/:id',
     {
@@ -164,21 +174,14 @@ export async function dietsRoutes(app: FastifyInstance) {
       })
 
       const { id } = getTransactionParamsSchema.parse(request.params)
-      const sessionId = request.cookies.sessionId
 
-      const diet = await knex('diets')
+      const meal = await knex('diets')
         .innerJoin('users', 'diets.user_id', 'users.id')
         .where('diets.id', id)
         .first('diets.*', 'session_id')
 
-      if (!diet) {
-        return reply.status(400).send({ error: 'Diet not found' })
-      }
-
-      if (diet.session_id !== sessionId) {
-        return reply.status(401).send({
-          error: 'Unauthorized.',
-        })
+      if (!meal) {
+        return reply.status(400).send({ error: 'Diet not found.' })
       }
 
       await knex('diets').delete().where({ id })
