@@ -98,7 +98,7 @@ describe.only('Metrics routes', () => {
     )
   })
 
-  it.only('should be able to show total of meals in diet', async () => {
+  it('should be able to show total of meals in diet', async () => {
     const userCookie = await addMealsInDatabaseFromAUser()
 
     const metricsResponse = await request(app.server)
