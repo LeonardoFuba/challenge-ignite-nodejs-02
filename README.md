@@ -42,6 +42,21 @@ $ npm run knex -- migrate:latest
 # Rode o servidor
 $ npm run dev
 
+
+## Cobertura de testes
+$ npm run coverage
+
+```
+
+## 🚨 Testes
+
+```bash
+# Rode o testes
+$ npm run test
+
+# Confira a cobertura dos testes
+$ npm run coverage
+
 ```
 
 ## 📝 Licença
